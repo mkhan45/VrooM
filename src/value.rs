@@ -1,5 +1,3 @@
-use std::mem::ManuallyDrop;
-
 /// Theoretically we always know the types of things
 /// so we don't need a tag
 /// When we have a sum type of which we don't know the
@@ -25,8 +23,10 @@ pub enum TypeId {
     Float = 1,
 }
 
-pub union HeapVal {
-    pub string: ManuallyDrop<String>,
+#[derive(Clone)]
+pub enum HeapVal {
+    Str(String),
+    List(Vec<Val>),
 }
 
 pub unsafe fn pop_int(stack: &mut Vec<Val>) -> isize {
@@ -39,5 +39,8 @@ pub unsafe fn pop_float(stack: &mut Vec<Val>) -> f64 {
 
 pub unsafe fn pop_str<'a>(stack: &mut Vec<Val>, heap: &'a Vec<HeapVal>) -> &'a str {
     let i = stack.pop().unwrap_unchecked().heap_ptr;
-    &heap[i].string
+    match &heap[i] {
+        HeapVal::Str(s) => &s,
+        _ => todo!(),
+    }
 }
