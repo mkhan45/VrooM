@@ -57,4 +57,44 @@ fn main() {
         dbg!(value::pop_int(&mut vm.stack));
         dbg!(value::pop_int(&mut vm.stack));
     }
+
+    let mut code: Vec<u8> = Vec::new();
+
+
+    // PushInt 0 -- [i] - byte 0
+    code.push(Instruction::PushInt as u8);
+    code.extend(0i64.to_be_bytes());
+
+    // PushInt 1 -- [i, 1] - byte 9
+    code.push(Instruction::PushInt as u8);
+    code.extend(1i64.to_be_bytes());
+
+    // Add -- [i + 1] - byte 18
+    code.push(Instruction::Add as u8);
+
+    // Dup       -- [i + 1, i + 1] - byte 19
+    code.push(Instruction::Dup as u8);
+
+    // PushInt 10 -- [i + 1, i + 1, 10] - byte 20
+    code.push(Instruction::PushInt as u8);
+    code.extend(1000i64.to_be_bytes());
+
+    // LEQ       -- [i + 1, i + 1 <= 10] - byte 29
+    code.push(Instruction::LEQ as u8);
+
+    // JumpEq 9  -- [i] - byte 30
+    code.push(Instruction::JumpEq as u8);
+    code.extend(9i64.to_be_bytes());
+
+    let mut vm = VM {
+        code,
+        stack: Vec::new(),
+        heap: Vec::new(),
+        ip: 0,
+    };
+    vm.run(&Vec::new());
+
+    unsafe {
+        dbg!(value::pop_int(&mut vm.stack));
+    }
 }

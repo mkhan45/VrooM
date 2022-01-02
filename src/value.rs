@@ -1,3 +1,14 @@
+const INT_TYPE_ID: usize = 0;
+const FLOAT_TYPE_ID: usize = 1;
+const STR_TYPE_ID: usize = 2;
+const BOOL_TYPE_ID: usize = 3;
+const BASE_TYPE_IDS: [&str; 4] = [
+    "int",
+    "float",
+    "str",
+    "bool",
+];
+
 /// Theoretically we always know the types of things
 /// so we don't need a tag
 /// When we have a sum type of which we don't know the
@@ -10,23 +21,19 @@ pub union Val {
     pub integer: isize,
     pub float: f64,
     pub heap_ptr: usize,
-    pub sum_type_id: TypeId,
-}
-
-// no point making it smaller than
-// a usize since it takes up one
-// stack index either way
-#[repr(usize)]
-#[derive(Copy, Clone)]
-pub enum TypeId {
-    Int = 0,
-    Float = 1,
+    pub boolean: bool,
+    pub sum_type_id: usize,
 }
 
 #[derive(Clone)]
 pub enum HeapVal {
     Str(String),
     List(Vec<Val>),
+    Value(Val),
+}
+
+pub unsafe fn peek_is_int(stack: &[Val]) -> bool {
+    stack.get_unchecked(stack.len() - 2).sum_type_id == INT_TYPE_ID
 }
 
 pub unsafe fn pop_int(stack: &mut Vec<Val>) -> isize {
@@ -35,6 +42,10 @@ pub unsafe fn pop_int(stack: &mut Vec<Val>) -> isize {
 
 pub unsafe fn pop_float(stack: &mut Vec<Val>) -> f64 {
     stack.pop().unwrap_unchecked().float
+}
+
+pub unsafe fn pop_bool(stack: &mut Vec<Val>) -> bool {
+    stack.pop().unwrap_unchecked().boolean
 }
 
 pub unsafe fn pop_str<'a>(stack: &mut Vec<Val>, heap: &'a Vec<HeapVal>) -> &'a str {
