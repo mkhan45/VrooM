@@ -30,6 +30,7 @@ pub enum HeapVal {
     Str(String),
     List(Vec<Val>),
     Value(Val),
+    Empty,
 }
 
 pub unsafe fn peek_is_int(stack: &[Val]) -> bool {

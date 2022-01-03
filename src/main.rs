@@ -46,8 +46,10 @@ fn main() {
     let mut vm = VM {
         code,
         stack: Vec::new(),
-        heap: Vec::new(),
+        heap: std::iter::repeat(HeapVal::Empty).take(vm::MAX_HEAP_SIZE).collect(),
         ip: 0,
+        heap_top: 0,
+        heap_roots: std::collections::HashSet::new(),
     };
     vm.run(&vec![HeapVal::Str("asdf".to_string())]);
 
@@ -65,36 +67,55 @@ fn main() {
     code.push(Instruction::PushInt as u8);
     code.extend(0i64.to_be_bytes());
 
-    // PushInt 1 -- [i, 1] - byte 9
-    code.push(Instruction::PushInt as u8);
-    code.extend(1i64.to_be_bytes());
+    // Incr -- [i, 1] - byte 9
+    code.push(Instruction::Incr as u8);
 
-    // Add -- [i + 1] - byte 18
-    code.push(Instruction::Add as u8);
-
-    // Dup       -- [i + 1, i + 1] - byte 19
+    // Dup       -- [i + 1, i + 1] - byte 10
     code.push(Instruction::Dup as u8);
 
-    // PushInt 10 -- [i + 1, i + 1, 10] - byte 20
+    // PushInt 10 -- [i + 1, i + 1, 10] - byte 11
     code.push(Instruction::PushInt as u8);
-    code.extend(1000i64.to_be_bytes());
+    code.extend((100i64).to_be_bytes());
 
-    // LEQ       -- [i + 1, i + 1 <= 10] - byte 29
+    // LEQ       -- [i + 1, i + 1 <= 10] - byte 20
     code.push(Instruction::LEQ as u8);
 
-    // JumpEq 9  -- [i] - byte 30
+    // JumpEq 9  -- [i] - byte 29
     code.push(Instruction::JumpEq as u8);
     code.extend(9i64.to_be_bytes());
 
     let mut vm = VM {
         code,
         stack: Vec::new(),
-        heap: Vec::new(),
+        heap: std::iter::repeat(HeapVal::Empty).take(vm::MAX_HEAP_SIZE).collect(),
         ip: 0,
+        heap_top: 0,
+        heap_roots: std::collections::HashSet::new(),
     };
     vm.run(&Vec::new());
 
     unsafe {
         dbg!(value::pop_int(&mut vm.stack));
     }
+
+    println!("--------------");
+
+    let mut code: Vec<u8> = Vec::new();
+
+    code.push(Instruction::HeapConst as u8);
+    code.extend(0i64.to_be_bytes());
+    code.push(Instruction::PopHeapPtr as u8);
+
+    code.push(Instruction::Jump as u8);
+    code.extend(0i64.to_be_bytes());
+
+    let mut vm = VM {
+        code,
+        stack: Vec::new(),
+        heap: std::iter::repeat(HeapVal::Empty).take(vm::MAX_HEAP_SIZE).collect(),
+        ip: 0,
+        heap_top: 0,
+        heap_roots: std::collections::HashSet::new(),
+    };
+    vm.run(&vec![HeapVal::Str("Asdf".to_string())]);
 }
